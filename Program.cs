@@ -11,6 +11,11 @@ using var client = provider.GetRequiredService<IKubernetesClientFactory>().Creat
 
 var namespaces = await client.ListNamespacesAsync();
 
+if (namespaces.Items.Count == 0)
+{
+    Console.Error.WriteLine("No namespaces found.");
+}
+
 foreach (var item in namespaces.Items)
 {
     Console.WriteLine(item.Metadata?.Name ?? "(unknown)");
