@@ -22,6 +22,24 @@ public sealed class KubernetesClient(k8s.Kubernetes client) : IKubernetesClient
         return _client.ListNamespaceAsync(cancellationToken: cancellationToken);
     }
 
+    public IReadOnlyList<string> ListKubeConfigContexts()
+    {
+        var config = KubernetesClientConfiguration.LoadKubeConfig();
+        if (config?.Contexts is null || !config.Contexts.Any())
+        {
+            return [];
+        }
+
+        return [.. config.Contexts
+            .Select(context => context.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))];
+    }
+
+    public Task<V1DeploymentList> ListDeploymentsAsync(CancellationToken cancellationToken = default)
+    {
+        return _client.ListDeploymentForAllNamespacesAsync(cancellationToken: cancellationToken);
+    }
+
     public void Dispose()
     {
         _client.Dispose();
