@@ -1,4 +1,5 @@
 using Artifacts.Kubernetes;
+using Artifacts.Models;
 using k8s;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,6 +47,8 @@ if (unknownContexts.Length > 0)
     return;
 }
 
+List<ImageDef> images = [];
+
 foreach (var contextName in requestedContexts)
 {
     var options = new KubernetesClientOptions
@@ -81,6 +84,8 @@ foreach (var contextName in requestedContexts)
             var imageTag = GetImageTag(image);
             var containerName = container.Name ?? "(unknown)";
             Console.WriteLine($"[{contextName}] {deploymentNamespace}/{deploymentName} | {containerName} | {imageTag}");
+
+            images.Add(new ImageDef(contextName,deploymentNamespace,deploymentName,containerName,imageTag));
         }
     }
 }
