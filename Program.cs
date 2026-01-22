@@ -1,6 +1,5 @@
 using Artifacts.Kubernetes;
 using Artifacts.Models;
-using k8s;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
@@ -53,7 +52,7 @@ foreach (var contextName in requestedContexts)
 {
     var options = new KubernetesClientOptions
     {
-        KubeConfigPath = KubernetesClientConfiguration.KubeConfigDefaultLocation,
+        UseDefaultConfig = true,
         ContextName = contextName
     };
 
@@ -85,7 +84,7 @@ foreach (var contextName in requestedContexts)
             var containerName = container.Name ?? "(unknown)";
             Console.WriteLine($"[{contextName}] {deploymentNamespace}/{deploymentName} | {containerName} | {imageTag}");
 
-            images.Add(new ImageDef(contextName,deploymentNamespace,deploymentName,containerName,imageTag));
+            images.Add(new ImageDef(contextName, deploymentNamespace, deploymentName, containerName, imageTag));
         }
     }
 }

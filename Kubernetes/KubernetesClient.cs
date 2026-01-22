@@ -24,7 +24,7 @@ public sealed class KubernetesClient(k8s.Kubernetes client) : IKubernetesClient
 
     public IReadOnlyList<string> ListKubeConfigContexts()
     {
-        var config = KubernetesClientConfiguration.LoadKubeConfig();
+        var config = LoadKubeConfig();
         if (config?.Contexts is null || !config.Contexts.Any())
         {
             return [];
@@ -33,6 +33,32 @@ public sealed class KubernetesClient(k8s.Kubernetes client) : IKubernetesClient
         return [.. config.Contexts
             .Select(context => context.Name)
             .Where(name => !string.IsNullOrWhiteSpace(name))];
+    }
+
+    private static k8s.KubeConfigModels.K8SConfiguration LoadKubeConfig()
+    {
+        var files = ResolveKubeConfigFiles();
+        if (files.Length == 0)
+        {
+            return KubernetesClientConfiguration.LoadKubeConfig();
+        }
+
+        var firstFile = files[0];
+        return KubernetesClientConfiguration.LoadKubeConfig(firstFile.FullName, false);
+    }
+
+    private static FileInfo[] ResolveKubeConfigFiles()
+    {
+        var pathValue = Environment.GetEnvironmentVariable("KUBECONFIG");
+        if (string.IsNullOrWhiteSpace(pathValue))
+        {
+            return [];
+        }
+
+        return pathValue
+            .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(path => new FileInfo(path))
+            .ToArray();
     }
 
     public Task<V1DeploymentList> ListDeploymentsAsync(CancellationToken cancellationToken = default)
